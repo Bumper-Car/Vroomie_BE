@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import get_user
 from app.core.database import get_db
 from app.models.user import User
-from app.schemas.drive_history import DriveHistoriesResponse
+from app.schemas.drive_history import DriveHistoriesResponse, DriveHistoryResponse
 from app.services import drive_history_service
 
 router = APIRouter(prefix="/drive/histories", tags=["drive_history"])
@@ -13,8 +13,20 @@ router = APIRouter(prefix="/drive/histories", tags=["drive_history"])
     "",
     response_model=DriveHistoriesResponse,
 )
-def read_user_score(
+def read_histories(
         user: User = Depends(get_user),
         db: Session = Depends(get_db)
 ):
     return drive_history_service.get_drive_histories(db, user)
+
+
+@router.get(
+    "/{history_id}",
+    response_model=DriveHistoryResponse,
+)
+def read_history(
+        history_id: int,
+        user: User = Depends(get_user),
+        db: Session = Depends(get_db)
+):
+    return drive_history_service.get_drive_history(history_id, db, user)
