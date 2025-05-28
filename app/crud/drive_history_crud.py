@@ -1,8 +1,10 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.testing.provision import drop_db
 
 from app.models.drive_history import DriveHistory
 from app.models.user import User
-from app.schemas.drive_history import DriveHistoriesResponse, DriveHistoriesItem, DriveHistoryResponse, VideoItem
+from app.schemas.drive_history import DriveHistoriesResponse, DriveHistoriesItem, DriveHistoryResponse, VideoItem, \
+    DriveHistoryRequest
 
 
 def get_histories(db: Session, user: User) -> DriveHistoriesResponse:
@@ -28,23 +30,15 @@ def get_histories(db: Session, user: User) -> DriveHistoriesResponse:
     return DriveHistoriesResponse(histories=histories)
 
 
-def get_history(history_id, db: Session, user: User) -> DriveHistoryResponse:
+def get_history(history_id, db: Session, user_id: int) -> DriveHistory:
     history_query = (((db.query(DriveHistory)
                      .filter(DriveHistory.history_id == history_id))
-                     .filter(DriveHistory.user_id == user.user_id))
+                     .filter(DriveHistory.user_id == user_id))
                      .first())
 
-    video_items = [
-        VideoItem(
-            video_id=str(video.video_id),
-            title=video.title,
-            content=video.content,
-            url=video.url
-        )
-        for video in history_query.videos
-    ]
-
-    return DriveHistoryResponse(
+    return DriveHistory(
+        history_id=history_id,
+        user_id=user_id,
         start_at=history_query.start_at,
         end_at=history_query.end_at,
         start_location=history_query.start_location,
@@ -58,5 +52,24 @@ def get_history(history_id, db: Session, user: User) -> DriveHistoryResponse:
         sudden_deceleration_count=history_query.sudden_deceleration_count,
         sudden_acceleration_count=history_query.sudden_acceleration_count,
         speeding_count=history_query.speeding_count,
-        videos=video_items
     )
+
+def create_history(drive_history_request: DriveHistoryRequest, db: Session, user_id: int) -> DriveHistory:
+    drive_history = DriveHistory(
+        user_id=user_id,
+        start_at=drive_history_request.start_at,
+        end_at=drive_history_request.end_at,
+        start_location=drive_history_request.start_location,
+        end_location=drive_history_request.end_location,
+        distance=drive_history_request.distance,
+        duration=drive_history_request.duration,
+        score=drive_history_request.score,
+        lane_deviation_left_count=drive_history_request.lane_deviation_left_count,
+        lane_deviation_right_count=drive_history_request.lane_deviation_right_count,
+        safe_distance_violation_count=drive_history_request.safe_distance_violation_count,
+        sudden_deceleration_count=drive_history_request.sudden_deceleration_count,
+        sudden_acceleration_count=drive_history_request.sudden_acceleration_count,
+        speeding_count=drive_history_request.speeding_count,
+    )
+    db.add(drive_history)
+    return drive_history

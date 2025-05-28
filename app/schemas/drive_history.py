@@ -18,7 +18,7 @@ class DriveHistoriesResponse(BaseModel):
     histories: List[DriveHistoriesItem]
 
 class VideoItem(BaseModel):
-    video_id: str
+    video_id: int
     title: str
     content: str
     url: str
