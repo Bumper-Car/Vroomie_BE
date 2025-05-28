@@ -4,7 +4,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import base64
 import requests
 
-router = APIRouter()
+router = APIRouter(prefix="/drive", tags=["drive"])
 
 
 def send_frame_to_colab_direct(image_bytes: bytes) -> str:

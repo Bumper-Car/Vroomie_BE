@@ -3,24 +3,13 @@ from fastapi import APIRouter, Request, Header, HTTPException, Depends
 from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
 
-from app.api import websocket
-from app.schemas.message import ChatRequest, ChatResponse
-from app.services.assistant import get_gpt_response
 from app.services.auth_service import kakao_login, get_user_by_token
 from app.core.database import get_db
 
+router = APIRouter(prefix="/login", tags=["login"])
+
 # Android 앱용 딥링크
 REDIRECT_SCHEME = os.getenv("APP_REDIRECT_SCHEME", "vroomie://login-success")
-
-router = APIRouter()
-router.include_router(websocket.router)
-
-
-@router.post("/ask", response_model=ChatResponse)
-async def ask(req: ChatRequest):
-    answer = await get_gpt_response(req.message)
-    return ChatResponse(reply=answer)
-
 
 @router.get("/auth/kakao/callback")
 def kakao_callback(request: Request, db: Session = Depends(get_db)):

@@ -1,9 +1,8 @@
 from fastapi import FastAPI
-from app.api.routes import router
-from app.api import websocket
+from app.api.api_router import router
+
 app = FastAPI()
 app.include_router(router)
-app.include_router(websocket.router)
 
 @app.get("/")
 async def root():
