@@ -13,7 +13,6 @@ class DriveTipsResponse(BaseModel):
     tips: List[DriveTipsItem]
 
 class DriveTipResponse(BaseModel):
-    tip_id: int
     title: str
     thumbnail_url: str = None
     create_at: datetime = None

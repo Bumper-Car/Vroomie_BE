@@ -28,3 +28,7 @@ def get_drive_tips(db: Session) -> List[DriveTip]:
         )
         .all()
     )
+
+
+def get_drive_tip(db: Session, tip_id: int) -> DriveTip:
+    return db.query(DriveTip).get(tip_id)
