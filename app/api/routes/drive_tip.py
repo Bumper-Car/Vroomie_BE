@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import get_user
 from app.core.database import get_db
 from app.models import User
-from app.schemas.drive_tip import DriveTipsResponse
+from app.schemas.drive_tip import DriveTipsResponse, DriveTipResponse
 from app.services import drive_tip_service
 
 router = APIRouter(prefix="/drive/tips", tags=["drive_tip"])
@@ -24,3 +24,15 @@ def read_drive_tips(
         return drive_tip_service.get_drive_tips_title(db)
     else:
         return drive_tip_service.get_drive_tips(db)
+
+
+@router.get(
+    "/{tip_id}",
+    response_model=DriveTipResponse,
+)
+def read_drive_tips(
+        tip_id: int,
+        user: User = Depends(get_user),
+        db: Session = Depends(get_db)
+):
+    return drive_tip_service.get_drive_tip(db, tip_id)
