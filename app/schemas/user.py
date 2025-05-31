@@ -12,3 +12,10 @@ class UserExtraInfoRequest(BaseModel):
     car_hipass: bool = None
     car_type: CarTypeEnum = None
     car_fuel: FuelTypeEnum = None
+
+class UserResponse(BaseModel):
+    user_name: str = None
+    car_model: str = None
+    car_hipass: bool = None
+    car_type: CarTypeEnum = None
+    car_fuel: FuelTypeEnum = None
