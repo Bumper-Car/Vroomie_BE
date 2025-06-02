@@ -1,9 +1,10 @@
 import os
 import ssl
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request
 import base64
 import websockets
+import asyncio
 
 router = APIRouter(prefix="/drive", tags=["drive"])
 
@@ -20,6 +21,25 @@ async def connect_to_colab_ws():
     )
     print("✅ Colab WebSocket 연결됨 (BE)")
 
+async def listen_from_colab():
+    global colab_ws
+    while True:
+        try:
+            if colab_ws is None:
+                await connect_to_colab_ws()
+
+            msg = await colab_ws.recv()
+            print(f"📨 Colab에서 이벤트 수신: {msg}")
+
+            if msg.startswith("Cut_In"):
+                print("🚨 침범 감지 처리됨")
+                # TODO: 끼어들기 경고 음성 안내
+
+        except Exception as e:
+            print(f"⚠️ Colab WebSocket 수신 중 오류: {e}")
+            colab_ws = None
+            await asyncio.sleep(1)  # 재시도 대기
+
 async def send_frame_to_colab_direct(image_bytes: bytes):
     global colab_ws
     try:
@@ -32,6 +52,7 @@ async def send_frame_to_colab_direct(image_bytes: bytes):
             print(f"⚠️ WebSocket send 오류 발생 → 재연결 시도 ({send_error})")
             colab_ws = None
             await connect_to_colab_ws()
+            asyncio.create_task(listen_from_colab())
             await colab_ws.send(image_bytes)
 
     except Exception as e:
