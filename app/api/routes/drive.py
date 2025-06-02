@@ -34,6 +34,12 @@ async def listen_from_colab():
             if msg.startswith("Cut_In"):
                 print("🚨 침범 감지 처리됨")
                 # TODO: 끼어들기 경고 음성 안내
+            elif msg.startswith("Left_Deviation"):
+                print("🚨 차선 좌측 치우침")
+                # TODO: 좌측 치우침 경고 음성 안내
+            elif msg.startswith("Right_Deviation"):
+                print("🚨 차선 우측 치우침")
+                # TODO: 우측 치우침 경고 음성 안내
 
         except Exception as e:
             print(f"⚠️ Colab WebSocket 수신 중 오류: {e}")
