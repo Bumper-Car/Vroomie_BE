@@ -5,7 +5,7 @@ from app.models.drive_history import DriveHistory
 from app.models.user import User
 from app.schemas.drive_history import DriveHistoriesResponse, DriveHistoriesItem, DriveHistoryResponse, VideoItem, \
     DriveHistoryRequest
-
+from app.services.drive_score_service import calculate_drive_score
 
 def get_histories(db: Session, user: User) -> DriveHistoriesResponse:
     histories_query = (
@@ -63,7 +63,6 @@ def create_history(drive_history_request: DriveHistoryRequest, db: Session, user
         end_location=drive_history_request.end_location,
         distance=drive_history_request.distance,
         duration=drive_history_request.duration,
-        score=drive_history_request.score,
         lane_deviation_left_count=drive_history_request.lane_deviation_left_count,
         lane_deviation_right_count=drive_history_request.lane_deviation_right_count,
         safe_distance_violation_count=drive_history_request.safe_distance_violation_count,
@@ -71,5 +70,18 @@ def create_history(drive_history_request: DriveHistoryRequest, db: Session, user
         sudden_acceleration_count=drive_history_request.sudden_acceleration_count,
         speeding_count=drive_history_request.speeding_count,
     )
+    drive_history.score = int(calculate_drive_score(drive_history))
+
     db.add(drive_history)
     return drive_history
+
+def get_drive_histories_by_user_id(db: Session, user_id: int) -> list[DriveHistory]:
+    return (
+        db.query(DriveHistory)
+        .filter(DriveHistory.user_id == user_id)
+        .order_by(DriveHistory.start_at.desc())
+        .all()
+    )
+
+def get_all_drive_scores(db: Session):
+    return db.query(DriveHistory.score).filter(DriveHistory.score.isnot(None)).all()

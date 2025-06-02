@@ -8,4 +8,5 @@ router = APIRouter(prefix="/gpt", tags=["gpt"])
 @router.post("/ask", response_model=ChatResponse)
 async def ask(req: ChatRequest):
     answer = await get_gpt_response(req.message)
+    print(answer)
     return ChatResponse(reply=answer)

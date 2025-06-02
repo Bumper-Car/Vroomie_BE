@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Dict, Optional
 
 from pydantic import BaseModel
 
@@ -54,7 +54,7 @@ class DriveHistoryRequest(BaseModel):
     distance: float
     duration: int
 
-    score: int
+    score: Optional[int] = None
 
     lane_deviation_left_count: int
     lane_deviation_right_count: int
@@ -63,4 +63,9 @@ class DriveHistoryRequest(BaseModel):
     sudden_acceleration_count: int
     speeding_count: int
 
-    videos: List[VideoItem]
+    videos: Optional[List[VideoItem]] = []
+
+class DriveScoreResponse(BaseModel):
+    latest_score: float
+    percentile: float
+    monthly_scores: Dict[str, float]
