@@ -1,12 +1,27 @@
 from sqlalchemy.orm import Session
 
-from app.crud import drive_history_crud, drive_history_video_crud
+from app.crud import drive_history_crud, drive_history_video_crud, user_crud
 from app.models.user import User
-from app.schemas.drive_history import DriveHistoryRequest, DriveHistoryResponse, VideoItem
+from app.schemas.drive_history import DriveHistoryRequest, DriveHistoryResponse, VideoItem, DriveHistoriesResponse, \
+    DriveHistoriesItem
+from app.services import drive_score_service
 
 
 def get_drive_histories(db: Session, user: User):
-    return drive_history_crud.get_histories(db, user)
+    drive_histories = drive_history_crud.get_histories(db, user)
+    drive_histories_items = [
+        DriveHistoriesItem(
+            history_id=h.history_id,
+            start_at=h.start_at,
+            end_at=h.end_at,
+            start_location=h.start_location,
+            end_location=h.end_location,
+            score=h.score
+        )
+        for h in drive_histories
+    ]
+
+    return DriveHistoriesResponse(histories=drive_histories_items)
 
 
 def get_drive_history(history_id: int, db: Session, user: User):
@@ -40,7 +55,10 @@ def get_drive_history(history_id: int, db: Session, user: User):
 def create_drive_history(drive_history_request: DriveHistoryRequest, db: Session, user: User):
     drive_history = drive_history_crud.create_history(drive_history_request, db, user.user_id)
     db.flush()
+    drive_history.score = int(drive_score_service.calculate_drive_score(drive_history))
     drive_history_videos = drive_history_video_crud.create_video(drive_history.history_id, drive_history_request.videos, db)
+    db.flush()
+    user_crud.update_user_score(db, user.user_id, drive_score_service.calculate_user_score(db, user))
     db.commit()
     db.refresh(drive_history)
     return DriveHistoryResponse(

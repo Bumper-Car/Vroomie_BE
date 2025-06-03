@@ -1,33 +1,19 @@
 from sqlalchemy.orm import Session
-from sqlalchemy.testing.provision import drop_db
 
 from app.models.drive_history import DriveHistory
 from app.models.user import User
 from app.schemas.drive_history import DriveHistoriesResponse, DriveHistoriesItem, DriveHistoryResponse, VideoItem, \
     DriveHistoryRequest
-from app.services.drive_score_service import calculate_drive_score
 
-def get_histories(db: Session, user: User) -> DriveHistoriesResponse:
-    histories_query = (
+def get_histories(db: Session, user: User) -> list[DriveHistory]:
+    histories = (
         db.query(DriveHistory)
         .filter(DriveHistory.user_id == user.user_id)
         .order_by(DriveHistory.start_at.desc())
         .all()
     )
 
-    histories = [
-        DriveHistoriesItem(
-            history_id=h.history_id,
-            start_at=h.start_at,
-            end_at=h.end_at,
-            start_location=h.start_location,
-            end_location=h.end_location,
-            score=h.score
-        )
-        for h in histories_query
-    ]
-
-    return DriveHistoriesResponse(histories=histories)
+    return histories
 
 
 def get_history(history_id, db: Session, user_id: int) -> DriveHistory:
@@ -70,18 +56,18 @@ def create_history(drive_history_request: DriveHistoryRequest, db: Session, user
         sudden_acceleration_count=drive_history_request.sudden_acceleration_count,
         speeding_count=drive_history_request.speeding_count,
     )
-    drive_history.score = int(calculate_drive_score(drive_history))
-
     db.add(drive_history)
     return drive_history
 
-def get_drive_histories_by_user_id(db: Session, user_id: int) -> list[DriveHistory]:
-    return (
-        db.query(DriveHistory)
-        .filter(DriveHistory.user_id == user_id)
-        .order_by(DriveHistory.start_at.desc())
-        .all()
-    )
+def get_all_histories_score(db: Session):
+    return (db.query(DriveHistory)
+            .filter(DriveHistory.score.isnot(None))
+            .all())
 
-def get_all_drive_scores(db: Session):
-    return db.query(DriveHistory.score).filter(DriveHistory.score.isnot(None)).all()
+def get_my_recent_histories_score(db: Session, user_id: int):
+    return (db.query(DriveHistory)
+            .filter(DriveHistory.user_id == user_id)
+            .filter(DriveHistory.score.isnot(None))
+            .order_by(DriveHistory.start_at.desc())
+            .limit(10)
+            .all())
