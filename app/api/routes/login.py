@@ -6,12 +6,12 @@ from starlette.responses import RedirectResponse
 from app.services.auth_service import kakao_login, get_user_by_token
 from app.core.database import get_db
 
-router = APIRouter(prefix="/login", tags=["login"])
+router = APIRouter(prefix="/auth", tags=["login"])
 
 # Android 앱용 딥링크
 REDIRECT_SCHEME = os.getenv("APP_REDIRECT_SCHEME", "vroomie://login-success")
 
-@router.get("/auth/kakao/callback")
+@router.get("/kakao/callback")
 def kakao_callback(request: Request, db: Session = Depends(get_db)):
     code = request.query_params.get("code")
     if not code:
