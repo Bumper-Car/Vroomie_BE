@@ -40,26 +40,29 @@ async def listen_from_colab():
             elif msg.startswith("Right_Deviation"):
                 print("🚨 차선 우측 치우침")
                 # TODO: 우측 치우침 경고 음성 안내
+            elif msg.startswith("Safe_Distance_Violation"):
+                print("⚠️ 안전거리 위반!")
+                # TODO: 안전거리 위반 경고 음성 안내
 
         except Exception as e:
             print(f"⚠️ Colab WebSocket 수신 중 오류: {e}")
             colab_ws = None
             await asyncio.sleep(1)  # 재시도 대기
 
-async def send_frame_to_colab_direct(image_bytes: bytes):
+async def send_json_to_colab(json_text: str):
     global colab_ws
     try:
         if colab_ws is None:
             await connect_to_colab_ws()
 
         try:
-            await colab_ws.send(image_bytes)
+            await colab_ws.send(json_text)
         except Exception as send_error:
             print(f"⚠️ WebSocket send 오류 발생 → 재연결 시도 ({send_error})")
             colab_ws = None
             await connect_to_colab_ws()
             asyncio.create_task(listen_from_colab())
-            await colab_ws.send(image_bytes)
+            await colab_ws.send(json_text)
 
     except Exception as e:
         print(f"⚠️ Colab WebSocket 전체 오류 발생 ({e})")
@@ -72,9 +75,8 @@ async def websocket_video(websocket: WebSocket):
 
     try:
         while True:
-            data = await websocket.receive_text()  # base64 문자열 수신
-            img_data = base64.b64decode(data)
-            await send_frame_to_colab_direct(img_data)
+            json_text = await websocket.receive_text()
+            await send_json_to_colab(json_text)
 
     except WebSocketDisconnect:
         print("❌ WebSocket 연결 종료됨")
