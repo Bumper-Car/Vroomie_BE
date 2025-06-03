@@ -41,3 +41,17 @@ def create_history(
         db: Session = Depends(get_db)
 ):
     return drive_history_service.create_drive_history(drive_history_request, db, user)
+
+@router.post(
+    "/devtest",
+    response_model=DriveHistoryResponse,
+)
+def create_history_devtest(
+        drive_history_request: DriveHistoryRequest,
+        db: Session = Depends(get_db)
+):
+    # ⚠️ 테스트용: 로그인 없이 user_id=3 고정
+    from app.models.user import User
+    user = User(user_id=3)
+
+    return drive_history_service.create_drive_history(drive_history_request, db, user)
