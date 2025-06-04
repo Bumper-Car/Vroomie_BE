@@ -7,6 +7,7 @@ class DriveHistoryVideo(Base):
 
     history_video_id = Column(Integer, primary_key=True, index=True)
     history_id = Column(Integer, ForeignKey("drive_history.history_id"), nullable=False)
+    user_id = Column(Integer, nullable=False)
 
     title = Column(String(255))
     content = Column(String(1000))
