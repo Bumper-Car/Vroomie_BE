@@ -5,7 +5,8 @@ from pydantic import BaseModel
 from app.core.database import get_db
 from app.models import drive_history_video
 from app.api.dependencies import get_user
-
+from app.crud.drive_history_crud import get_latest_history_by_user_id
+from app.crud.user_crud import get_user_by_username
 router = APIRouter(prefix="/drive/video", tags=["drive"])
 
 # result 값에 따른 메시지 자동 매핑
@@ -33,8 +34,7 @@ result_to_message_map = {
 }
 
 class DriveVideoCreate(BaseModel):
-    user_id: int
-    history_id: int
+    username: str
     s3_url: str
     result: str  # "Left_Deviation", "Cut_In" 등
 
@@ -44,13 +44,25 @@ def save_drive_video_clips(
     db: Session = Depends(get_db)
 ):
     for video in videos:
+        # username으로 사용자 조회
+        user = get_user_by_username(db, video.username)
+        if not user:
+            raise HTTPException(status_code=404, detail=f"사용자 '{video.username}'을 찾을 수 없습니다.")
+
+        # 가장 최근 주행 이력 가져오기
+        latest_history = get_latest_history_by_user_id(db, user.user_id)
+        if not latest_history:
+            raise HTTPException(status_code=404, detail=f"사용자 '{video.username}'의 주행 이력이 없습니다.")
+
+        # 결과 코드에 따라 제목/내용 자동 생성
         mapping = result_to_message_map.get(video.result, {})
         title = mapping.get("title", f"{video.result} 상황")
         content = mapping.get("content", "운전 중 발생한 이벤트 기반 영상입니다.")
 
+        # DB 저장
         db_video = drive_history_video.DriveHistoryVideo(
-            user_id=video.user_id,
-            history_id=video.history_id,
+            user_id=user.user_id,
+            history_id=latest_history.history_id,
             title=title,
             content=content,
             video_url=video.s3_url,

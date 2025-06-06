@@ -4,6 +4,9 @@ from app.models.drive_history import DriveHistory
 from app.models.user import User
 from app.schemas.drive_history import DriveHistoriesResponse, DriveHistoriesItem, DriveHistoryResponse, VideoItem, \
     DriveHistoryRequest
+from app.services.drive_score_service import calculate_drive_score
+from typing import Optional
+
 
 def get_histories(db: Session, user: User) -> list[DriveHistory]:
     histories = (
@@ -64,6 +67,19 @@ def get_all_histories_score(db: Session):
             .filter(DriveHistory.score.isnot(None))
             .all())
 
+
+def get_all_drive_scores(db: Session):
+    return db.query(DriveHistory.score).filter(DriveHistory.score.isnot(None)).all()
+
+def get_latest_history_by_user_id(db: Session, user_id: int) -> Optional[DriveHistory]:
+    return (
+        db.query(DriveHistory)
+        .filter(DriveHistory.user_id == user_id)
+        .order_by(DriveHistory.start_at.desc())
+        .first()
+    )
+
+
 def get_my_recent_histories_score(db: Session, user_id: int):
     return (db.query(DriveHistory)
             .filter(DriveHistory.user_id == user_id)
@@ -71,3 +87,4 @@ def get_my_recent_histories_score(db: Session, user_id: int):
             .order_by(DriveHistory.start_at.desc())
             .limit(10)
             .all())
+

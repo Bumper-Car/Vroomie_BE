@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 
 from app.models import User
 from app.schemas.user import UserExtraInfoRequest
+from typing import Optional
+
 
 
 def create_user_extra_info(user_request: UserExtraInfoRequest, db: Session, user: User) -> User:
@@ -9,6 +11,11 @@ def create_user_extra_info(user_request: UserExtraInfoRequest, db: Session, user
         setattr(user, key, value)
 
     return user
+
+
+
+def get_user_by_username(db: Session, username: str) -> Optional[User]:
+    return db.query(User).filter(User.user_name == username).first()
 
 def get_all_users_score(db: Session):
     return (db.query(User.user_id, User.user_score)
@@ -19,3 +26,4 @@ def update_user_score(db: Session, user_id: int, user_score: int):
     (db.query(User)
      .filter(User.user_id == user_id)
      .update({User.user_score: user_score}))
+
