@@ -54,8 +54,6 @@ class DriveHistoryRequest(BaseModel):
     distance: float
     duration: int
 
-    score: Optional[int] = None
-
     lane_deviation_left_count: int
     lane_deviation_right_count: int
     safe_distance_violation_count: int
@@ -64,8 +62,3 @@ class DriveHistoryRequest(BaseModel):
     speeding_count: int
 
     videos: Optional[List[VideoItem]] = []
-
-class DriveScoreResponse(BaseModel):
-    latest_score: float
-    percentile: float
-    monthly_scores: Dict[str, float]
