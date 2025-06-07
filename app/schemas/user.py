@@ -1,4 +1,4 @@
-from typing import Dict, OrderedDict, List
+from typing import Dict, OrderedDict, List, Optional
 
 from pydantic import BaseModel
 
@@ -17,10 +17,10 @@ class UserExtraInfoRequest(BaseModel):
 
 class UserResponse(BaseModel):
     user_name: str = None
-    car_model: str = None
-    car_hipass: bool = None
-    car_type: CarTypeEnum = None
-    car_fuel: FuelTypeEnum = None
+    car_model: Optional[str] = None
+    car_hipass: Optional[bool] = None
+    car_type: Optional[CarTypeEnum] = None
+    car_fuel: Optional[FuelTypeEnum] = None
     user_score: int = None
 
 class MonthlyDetailStat(BaseModel):
